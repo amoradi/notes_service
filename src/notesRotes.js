@@ -2,6 +2,22 @@ const express = require("express");
 const isAuthorized = require("../isAuthorized");
 const db = require("./db");
 
+/*
+  
+  use https://www.npmjs.com/package/showdown
+
+  var showdown  = require('showdown'),
+      converter = new showdown.Converter(),
+      text      = '# hello, markdown!',
+      html      = converter.makeHtml(text);
+
+  var showdown  = require('showdown'),
+    converter = new showdown.Converter(),
+    html      = '<a href="https://patreon.com/showdownjs">Please Support us!</a>',
+    md        = converter.makeMarkdown(text);
+     
+*/
+
 // authorize permission
 // via an API key, sent in a header
 
