@@ -22,19 +22,22 @@ app.use(routes);
 const server = app.listen(port, () => {
   console.log(`Listening on port ${port}...`);
   
-  // log all routes
-  // var route, routes = [];
-  // app._router.stack.forEach(function(middleware){
-  //   if(middleware.route){ // routes registered directly on the app
-  //     routes.push(middleware.route);
-  //   } else if(middleware.name === 'router'){ // router middleware 
-  //     middleware.handle.stack.forEach(function(handler){
-  //       route = handler.route;
-  //       route && routes.push(route);
-  //     });
-  //   }
-  // });
-  // console.log(routes);
+// function logAllRoutes() {
+//   // log all routes
+//   var route, routes = [];
+//   app._router.stack.forEach(function(middleware){
+//     if(middleware.route){ // routes registered directly on the app
+//       routes.push(middleware.route);
+//     } else if(middleware.name === 'router'){ // router middleware 
+//       middleware.handle.stack.forEach(function(handler){
+//         route = handler.route;
+//         route && routes.push(route);
+//       });
+//     }
+//   });
+//   console.log(routes);
+// }
+
 });
 
 module.exports = { app, server };

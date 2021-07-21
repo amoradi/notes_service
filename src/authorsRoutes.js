@@ -1,14 +1,17 @@
 const express = require("express");
+const { v4: uuidv4 } = require('uuid');
 const db = require("./db");
 
 const saltRounds = 10;
 const router = express.Router();
 
+// WARNING REQUEST FIELDS ARE NOT SANTIZED YET.
+
 router.post("/authors/register", (req, res) => {
   const { email, name } = req.body;
-  // TODO: Generate a random key.
-  // Maybe bcrypt has something for this.
-  const apiKey = '';
+  // Generate a random key.
+  // This is sent back to the requester upon success.
+  const apiKey = uuidv4();
 
   // Salt and hash the api key for storage.
   bcrypt.genSalt(saltRounds, function(err, salt) {
@@ -26,7 +29,7 @@ router.post("/authors/register", (req, res) => {
         }
 
         res.status(200).json({
-          apikey, // Not hashed. This response will be the last time to access this.
+          apikey, // Not hashed. This response will be the only time to access this.
           email: dbRes.email,
           name: dbRes.name,
         });
@@ -34,5 +37,7 @@ router.post("/authors/register", (req, res) => {
     });
   });
 });
+
+// FUTURE: Reset api key endpoint, DELETE author. 
 
 module.exports = router;
