@@ -1,5 +1,6 @@
 const request = require('supertest');
-const express = require('express');
+const { app, server } = require('./index');
+
 
 // THESE ARE REALLY INTEGRATION TESTS B/C WE INTERFACE WITH THE DB LAYER.
 
@@ -26,6 +27,7 @@ const express = require('express');
 
 */
 
+jest.setTimeout(16000);
 
 // assigned in beforeAll's side effect
 let apiKey;
@@ -34,48 +36,62 @@ let apiKey;
 
 async function registerAuthor() {
   const res = await request(app)
-    .post('authors/register')
+    .post('/api/authors/register')
     .send({
       email: 'chargha@chargha.chargha',
       name: 'myNameIsChargha'
     });
 
-  assert(res.statusCode, 200);
-  assert(res.body.email, 'chargha@chargha.chargha');
-  assert(res.body.name, 'myNameIsChargha');
-  assert(typeof res.body.apiKey, 'string'); 
+  expect(res.statusCode).toBe(200);
+  expect(res.body.email).toBe('chargha@chargha.chargha');
+  expect(res.body.name).toBe('myNameIsChargha');
+  expect(typeof res.body.apiKey).toBe('string'); 
 
   // SIDE EFFECT
   apiKey = res.body.apiKey;
+
+  return apiKey;
 }
 
 async function associateNotesToAuthor(apiKey) {
   const res = await request(app)
-    .post('notes')
+    .post('/api/notes')
     .set('X-API-KEY', apiKey)
     .send({
       content: '# Title 1 chargha bargha',
-      author: 'myNameIsChargha'
     });
+    
+  expect(res.statusCode).toBe(200);
+
+  console.log('associate notes to author was called $$$$')
 }
 
 beforeAll(async () => {
-  await registerAuthor();
-  await associateNotesToAuthor(apiKey);
+  const key = await registerAuthor();
+  await associateNotesToAuthor(key);
 });
 
 // Cleanup: Remove author and associated notes purposed for these tests.
-afterAll(() => {
-
+afterAll((done) => {
+  server.close(done);
 });
 
-describe('GET /notes', function() {
-  it('responds with json', function(done) {
+describe('GET /notes', function () {
+  it('responds with json', async function(done) {
     request(app)
-      .get('/notes')
+      .get('/api/notes')
       .set('Accept', 'application/json')
+      .set('X-API-KEY', apiKey)
       .expect('Content-Type', /json/)
-      .expect(200, done);
+      .expect(200)
+      .end(function(err, res) {
+        if (err) throw err;
+
+        expect(res.data.length).toBe(1);
+        expect(res.data[0].name).toBe('myNameIsChargha');
+        expect(res.data[0].content).toBe('# Title 1 chargha bargha');
+        console.log('$$$$ GET NOTES RESPONSE >>>', res);
+      });
   });
 
   // it returns all notes

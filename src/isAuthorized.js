@@ -1,31 +1,40 @@
-const hostsWhitelist = ['localhost', 'aaronmoradi.com'];
+const crypto = require("crypto");
+const db = require("./db");
 
+const hostsWhitelist = ['localhost', '127.0.0.1', 'aaronmoradi.com'];
+
+// TODO: share this.
+const hash = (input) => {
+  return crypto.createHash("sha256")
+  .update(input)
+  .digest("hex");
+}
+
+// TODO: Instead of querying DB each time here, 
+// Lookup is authorized with in-memory map.
 function isAuthorized(req, res, next) {
   const apiKey = req.header('X-API-KEY');
-
-  // TODO: hash api_keys so that you can
-  // re-hash these api_key requests, so 
-  // that you can have a WHERE clause.
-  const selectAllAuthors = {
-    text: 'SELECT * FROM authors',
+  const selectAuthor = {
+    text: 'SELECT * FROM authors WHERE api_key=$1',
+    values: [hash(apiKey)]
   };
-  
-  db.query(selectAllAuthors , (err, dbRes) => {
+  console.log('is authorized was called...');
+
+  db.query(selectAuthor, (err, dbRes) => {
     let isValidApiKey = false;
-
-    for (let i = 0, ii = dbRes.rows.length; i < ii; i++) {
-      bcrypt.compare(apiKey, dbRes.rows[i].api_key /* hashed */, function(err, result) {
-        if(err) {
-          continue;
-        } else if (result) {
-          isValidApiKey = true;
-          break;
-        } 
-      });
-    }
-
     const isValidHost = hostsWhitelist.includes(req.hostname);
 
+    console.log('err %%', err);
+
+    if (err) {
+      res.status(500).json({
+        error: err.toString()
+      });
+    } else {
+      isValidApiKey = dbRes.rows.length === 1;
+    }
+
+    console.log('wtf', isValidApiKey, isValidHost, req.hostname)
     if (isValidApiKey && isValidHost) {
       next();
     } else {
