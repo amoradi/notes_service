@@ -13,6 +13,10 @@ const config = {
 const pool = new Pool(config);
 
 module.exports = {
+  end: () => {
+    pool.end();
+  },
+
   /*
 
     Convenience Method to run a query -- removes the risk of leaking a client.

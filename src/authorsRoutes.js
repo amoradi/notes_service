@@ -28,10 +28,12 @@ router.post("/authors/register", (req, res) => {
   };
 
   db.query(registerAuthor, (err, dbRes) => {
-    if (err) {
+    if (err || dbRes === undefined) {
       res.status(500).json({
         error: err.toString()
       });
+
+      return;
     }
 
     // NOTE: dbRes.rows is empty, even on this happy-success path.
@@ -43,7 +45,8 @@ router.post("/authors/register", (req, res) => {
   });
 });
 
-
 // FUTURE: Reset api key endpoint, DELETE author. 
+
+// router.delete("/authors/", (req, res) => {}
 
 module.exports = router;

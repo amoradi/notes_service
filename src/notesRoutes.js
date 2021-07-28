@@ -1,4 +1,6 @@
 const express = require("express");
+const crypto = require("crypto");
+
 const isAuthorized = require("./isAuthorized");
 const db = require("./db");
 
@@ -18,13 +20,6 @@ const db = require("./db");
      
 */
 
-// TDD these.
-//
-// authorize permission
-// via an API key, sent in a header
-
-// create, get, update
-
 const router = express.Router();
 
 // TODO: share this.
@@ -36,7 +31,6 @@ const hash = (input) => {
 
 // POST /notes/ - create a note. Apply to api_key. 
 router.post("/notes", isAuthorized, (req, res) => {
-  console.log('POST NOTES WAS CALLED ')
   const { content } = req.body;
   const apiKey = req.header('X-API-KEY');
 
@@ -46,22 +40,19 @@ router.post("/notes", isAuthorized, (req, res) => {
     values: [hash(apiKey)]
   };
 
-  console.log('hash', hash(apiKey));
-
   db.query(selectAuthor, (err, dbRes) => {
-    console.log('err', err);
-    console.log('dbRes', dbRes);
-
     if (err) {
       dbRes.status(500).json({
         error: err.toString()
       });
+      return;
     }
 
     if (dbRes.rows.length !== 1) {
       dbRes.status(500).json({
         error: `${dbRes.rows.length} authors found for note.`
       });
+      return;
     }
 
     const author = dbRes.rows[0];
@@ -75,11 +66,33 @@ router.post("/notes", isAuthorized, (req, res) => {
         res.status(500).json({
           error: err_.toString()
         });
+        return;
       }
 
       res.status(200).json({
         data: dbRes_.rows
       });
+    });
+  });
+});
+
+router.get("/notes", isAuthorized, (req, res) => {
+  const apiKey = req.header('X-API-KEY');
+  const selectNotes = {
+    text: 'SELECT * FROM notes LEFT JOIN authors on notes.author = authors.name WHERE authors.api_key=$1',
+    values: [hash(apiKey)]
+  };
+
+  db.query(selectNotes, (err, dbRes) => {
+    if (err) {
+      dbRes.status(500).json({
+        error: err.toString()
+      });
+      return;
+    }
+
+    res.status(200).json({
+      data: dbRes.rows
     });
   });
 });

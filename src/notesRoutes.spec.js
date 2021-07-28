@@ -1,6 +1,8 @@
-const request = require('supertest');
-const { app, server } = require('./index');
+require('dotenv').config();
 
+const request = require('supertest');
+const db = require('./db');
+const { app, server } = require('./index');
 
 // THESE ARE REALLY INTEGRATION TESTS B/C WE INTERFACE WITH THE DB LAYER.
 
@@ -27,13 +29,10 @@ const { app, server } = require('./index');
 
 */
 
-jest.setTimeout(16000);
-
 // assigned in beforeAll's side effect
 let apiKey;
 
 // Seed test data to DB: register an author, create some notes.
-
 async function registerAuthor() {
   const res = await request(app)
     .post('/api/authors/register')
@@ -54,30 +53,35 @@ async function registerAuthor() {
 }
 
 async function associateNotesToAuthor(apiKey) {
-  const res = await request(app)
-    .post('/api/notes')
-    .set('X-API-KEY', apiKey)
-    .send({
-      content: '# Title 1 chargha bargha',
-    });
-    
-  expect(res.statusCode).toBe(200);
-
-  console.log('associate notes to author was called $$$$')
+  if (apiKey) {
+    const res = await request(app)
+      .post('/api/notes')
+      .set('X-API-KEY', apiKey)
+      .send({
+        content: '# Title 1 chargha bargha',
+      });
+      
+    expect(res.statusCode).toBe(200);
+  }
 }
 
 beforeAll(async () => {
-  const key = await registerAuthor();
-  await associateNotesToAuthor(key);
+  const apiKey = await registerAuthor();
+  await associateNotesToAuthor(apiKey);
 });
 
 // Cleanup: Remove author and associated notes purposed for these tests.
 afterAll((done) => {
-  server.close(done);
+  // TODO: DELETE author and associates notes
+  // then ... server close
+  server.close(() => {
+    db.end();
+    done();
+  });
 });
 
 describe('GET /notes', function () {
-  it('responds with json', async function(done) {
+  it('responds with json', function(done) {
     request(app)
       .get('/api/notes')
       .set('Accept', 'application/json')
@@ -85,50 +89,13 @@ describe('GET /notes', function () {
       .expect('Content-Type', /json/)
       .expect(200)
       .end(function(err, res) {
-        if (err) throw err;
+        if (err) done(err);
 
-        expect(res.data.length).toBe(1);
-        expect(res.data[0].name).toBe('myNameIsChargha');
-        expect(res.data[0].content).toBe('# Title 1 chargha bargha');
-        console.log('$$$$ GET NOTES RESPONSE >>>', res);
+        expect(res.body.data.length).toBe(1);
+        expect(res.body.data[0].name).toBe('myNameIsChargha');
+        expect(res.body.data[0].content).toBe('# Title 1 chargha bargha');
+    
+        return done();
       });
   });
-
-  // it returns all notes
-
-  // 
 });
-
-
-//// COPIED
-
-// const {assert} = require('chai');
-// const request = require('supertest');
-// const {jsdom} = require('jsdom');
-
-// const app = require('../../app');
-
-// const parseTextFromHTML = (htmlAsString, selector) => {
-//     const selectedElement = jsdom(htmlAsString).querySelector(selector);
-//     if (selectedElement !== null) {
-//       return selectedElement.textContent;
-//     } else {
-//       throw new Error(`No element with selector ${selector} found in HTML string`);
-//     }
-// };
-
-// describe('when the Message is valid', () => {
-//     it('creates a new message', async () => {
-//       const author = 'user name';
-//       const message ='feature testing with TDD makes me feel empowered to create a better workflow';
-      
-//       //save message
-//       const response = await request(app)
-//         .post('/messages')
-//         .type('form')
-//         .send({author, message});
-      
-//       //check database to verify message is saved
-//       assert.ok(await Message.findOne({message, author}), 'Creates a Message record');
-//     });
-// });

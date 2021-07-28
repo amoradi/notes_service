@@ -12,34 +12,34 @@ const hash = (input) => {
 
 // TODO: Instead of querying DB each time here, 
 // Lookup is authorized with in-memory map.
+// Like sessions storage, or cache here.
 function isAuthorized(req, res, next) {
   const apiKey = req.header('X-API-KEY');
   const selectAuthor = {
     text: 'SELECT * FROM authors WHERE api_key=$1',
     values: [hash(apiKey)]
   };
-  console.log('is authorized was called...');
-
+ 
   db.query(selectAuthor, (err, dbRes) => {
     let isValidApiKey = false;
     const isValidHost = hostsWhitelist.includes(req.hostname);
-
-    console.log('err %%', err);
 
     if (err) {
       res.status(500).json({
         error: err.toString()
       });
+      return;
     } else {
       isValidApiKey = dbRes.rows.length === 1;
     }
 
-    console.log('wtf', isValidApiKey, isValidHost, req.hostname)
     if (isValidApiKey && isValidHost) {
       next();
     } else {
       // TODO: identify violating pieces: api key or host or both. Pass a message.
+      req.end();
       res.status(403);
+      return;
     }
   });
 }
