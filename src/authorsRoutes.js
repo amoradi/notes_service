@@ -1,7 +1,9 @@
 const express = require("express");
 const { v4: uuidv4 } = require('uuid');
 const crypto = require("crypto");
+
 const db = require("./db");
+const isAuthorized = require("./isAuthorized");
 
 const router = express.Router();
 
@@ -47,6 +49,25 @@ router.post("/authors/register", (req, res) => {
 
 // FUTURE: Reset api key endpoint, DELETE author. 
 
-// router.delete("/authors/", (req, res) => {}
+router.delete("/authors/", isAuthorized,  (req, res) => {
+  const apiKey = req.header('X-API-KEY');
+  const deleteAuthor = {
+    text: 'DELETE FROM authors WHERE authors.api_key=$1',
+    values: [hash(apiKey)]
+  };
+
+  db.query(deleteAuthor, (err, dbRes) => {
+    if (err) {
+      dbRes.status(500).json({
+        error: err.toString()
+      });
+      return;
+    }
+ 
+    res.status(200).json({
+      data: dbRes.rows
+    });
+  });
+});
 
 module.exports = router;

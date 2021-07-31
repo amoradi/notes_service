@@ -65,18 +65,21 @@ async function associateNotesToAuthor(apiKey) {
   }
 }
 
-// TODO: Change to beforeEach so test depend on other tests.
-beforeAll(async () => {
-  const apiKey = await registerAuthor();
+beforeEach(async () => {
+  apiKey = await registerAuthor();
   await associateNotesToAuthor(apiKey);
 });
 
-// TODO: add afterEach to clean up.
-// DELETE author and associates notes
+afterEach(async () => {
+  const res = await request(app)
+    .delete ('/api/authors')
+    .set('X-API-KEY', apiKey);
+    
+  expect(res.statusCode).toBe(200);
+});
 
 // Cleanup: Remove author and associated notes purposed for these tests.
 afterAll((done) => {
-  // then ... server close
   server.close(() => {
     db.end();
     done();

@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS authors (
 );
 
 CREATE TABLE IF NOT EXISTS notes (
-  author varchar(100) NOT NULL REFERENCES author(name),
+  author varchar(100) NOT NULL REFERENCES author(name) ON DELETE CASCADE ON UPDATE CASCADE,
   content text NOT NULL, /* markdown / html */
   idx SERIAL
 );
