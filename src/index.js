@@ -16,6 +16,9 @@ const notesRoutes = require("./notesRoutes");
   // === MIDDLEWARE === //
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(function (err, req, res, next) {
+    res.status(400).send('Error', err);
+  });
 
   // === ROUTES === //
   app.use('/api/', authorsRoutes);

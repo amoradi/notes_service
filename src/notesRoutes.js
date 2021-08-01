@@ -97,4 +97,25 @@ router.get("/notes", isAuthorized, (req, res) => {
   });
 });
 
+router.get("/notes/:idx", isAuthorized, (req, res) => {
+  const apiKey = req.header('X-API-KEY');
+  const selectNotes = {
+    text: 'SELECT * FROM notes LEFT JOIN authors on notes.author = authors.name WHERE authors.api_key=$1 AND notes.idx=$2',
+    values: [hash(apiKey), req.params.idx]
+  };
+
+  db.query(selectNotes, (err, dbRes) => {
+    if (err) {
+      dbRes.status(500).json({
+        error: err.toString()
+      });
+      return;
+    }
+
+    res.status(200).json({
+      data: dbRes.rows
+    });
+  });
+});
+
 module.exports = router;

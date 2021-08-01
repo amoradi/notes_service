@@ -4,12 +4,10 @@ const request = require('supertest');
 const db = require('./db');
 const { app, server } = require('./index');
 
-// THESE ARE REALLY INTEGRATION TESTS B/C WE INTERFACE WITH THE DB LAYER.
-
 // import app
 // const app = require('hahahah');
 
-// GET /notes/ - get all notes via api_key
+// GET /notes/ - get all notes via api_key DONE
 
 // GET /notes/:id - get a note via api_key and :id
 
@@ -31,6 +29,7 @@ const { app, server } = require('./index');
 
 // assigned in beforeAll's side effect
 let apiKey;
+let noteIdx;
 
 // Seed test data to DB: register an author, create some notes.
 async function registerAuthor() {
@@ -78,7 +77,6 @@ afterEach(async () => {
   expect(res.statusCode).toBe(200);
 });
 
-// Cleanup: Remove author and associated notes purposed for these tests.
 afterAll((done) => {
   server.close(() => {
     db.end();
@@ -87,7 +85,9 @@ afterAll((done) => {
 });
 
 describe('GET /notes', function () {
-  it('responds with json', function(done) {
+  test('happy path: returns notes', function(done) {
+    let noteIdx;
+
     request(app)
       .get('/api/notes')
       .set('Accept', 'application/json')
@@ -101,6 +101,22 @@ describe('GET /notes', function () {
         expect(res.body.data[0].name).toBe('myNameIsChargha');
         expect(res.body.data[0].content).toBe('# Title 1 chargha bargha');
     
+        noteIdx = res.body.data[0].idx;
+
+        return done();
+      });
+  });
+
+  test('unauthorized API key', function(done) {
+    request(app)
+      .get('/api/notes')
+      .set('Accept', 'application/json')
+      .set('X-API-KEY', 'bad key')
+      .expect('Content-Type', /json/)
+      .expect(403)
+      .end(function(err, res) {
+        if (err) return done(err);
+
         return done();
       });
   });
