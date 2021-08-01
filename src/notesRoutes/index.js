@@ -2,8 +2,8 @@ const express = require("express");
 const crypto = require("crypto");
 const Router = require('express-promise-router')
 
-const isAuthorized = require("./isAuthorized");
-const db = require("./db");
+const isAuthorized = require("../isAuthorized");
+const db = require("../db");
 
 /*
   
@@ -50,12 +50,13 @@ router.post("/notes", isAuthorized, async (req, res) => {
 
     const author = rows[0];
     const createNote = {
-      text: 'INSERT INTO notes (author, content) VALUES ($1, $2)',
+      text: 'INSERT INTO notes (author, content) VALUES ($1, $2) RETURNING *',
       values: [author.name, content]
     };
-    const { rows: note } = await db.query(createNote);
+    const { rows: notes } = await db.query(createNote);
+
     res.status(200).json({
-      data: note
+      data: [notes[0]] // Eventhough it's just one, maintain a returned array interface
     });
   } catch(err) {
     res.status(500).json({ error: err.toString() });
@@ -85,8 +86,8 @@ router.get("/notes/:idx", isAuthorized, async (req, res) => {
       text: 'SELECT * FROM notes LEFT JOIN authors on notes.author = authors.name WHERE authors.api_key=$1 AND notes.idx=$2',
       values: [hash(apiKey), req.params.idx]
     };
-
     const { rows: notes } = await db.query(selectNotes);
+    
     res.status(200).json({
       data: notes
     });

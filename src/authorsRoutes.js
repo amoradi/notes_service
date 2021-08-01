@@ -35,6 +35,8 @@ router.post("/authors/register", async (req, res) => {
 
     if (dbRes && Array.isArray(dbRes.rows)) {
       // NOTE: dbRes.rows is empty, even on this happy-success path.
+      // I could tack on 'RETURNING *' to the query, but I don't see the
+      // benefit currently.
       res.status(200).json({
         apiKey, // Not hashed. This response will be the only time to access this.
         email,

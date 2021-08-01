@@ -1,37 +1,14 @@
 require('dotenv').config();
 
 const request = require('supertest');
-const db = require('./db');
-const { app, server } = require('./index');
+const db = require('../db');
+const { app, server } = require('../index');
 
-// import app
-// const app = require('hahahah');
-
-// GET /notes/ - get all notes via api_key DONE
-
-// GET /notes/:id - get a note via api_key and :id
-
-// POST /notes/ - create notes. Apply to api_key. 
-
-// PUT /notes/:id - update a note via api_key and :id
-
-// DELETE /notes/:id - destroy a note via api_key and :id
-
-/*
-
-  NOTE: A downside with setting up and tearing down with actual DB data, is that,
-  the prepare and post steps use endpoints, under this very test umbrella.
-  
-  Upside, if endpoints used in setup and teardown don't work properly tests will fail,
-  though error could be obfiscated.
-
-*/
-
-// assigned in beforeAll's side effect
+// assigned as a beforeEach side effect
 let apiKey;
-let noteIdx;
+let notesIdx;
 
-// Seed test data to DB: register an author, create some notes.
+// Seed test data to DB: register an author, create a some note.
 async function registerAuthor() {
   const res = await request(app)
     .post('/api/authors/register')
@@ -47,8 +24,6 @@ async function registerAuthor() {
 
   // SIDE EFFECT
   apiKey = res.body.apiKey;
-
-  return apiKey;
 }
 
 async function associateNotesToAuthor(apiKey) {
@@ -59,13 +34,16 @@ async function associateNotesToAuthor(apiKey) {
       .send({
         content: '# Title 1 chargha bargha',
       });
-      
+
     expect(res.statusCode).toBe(200);
+    expect(res.body.data.length).toBe(1);
+
+    notesIdx = res.body.data[0].idx;
   }
 }
 
 beforeEach(async () => {
-  apiKey = await registerAuthor();
+  await registerAuthor();
   await associateNotesToAuthor(apiKey);
 });
 
@@ -84,12 +62,10 @@ afterAll((done) => {
   });
 });
 
-describe('GET /notes', function () {
-  test('happy path: returns notes', function(done) {
-    let noteIdx;
-
+describe('GET /notes/:idx', function () {
+  test('happy path: returns note', function(done) {
     request(app)
-      .get('/api/notes')
+      .get('/api/notes/' + notesIdx)
       .set('Accept', 'application/json')
       .set('X-API-KEY', apiKey)
       .expect('Content-Type', /json/)
@@ -107,13 +83,26 @@ describe('GET /notes', function () {
       });
   });
 
-  test('unauthorized API key', function(done) {
+  test('sad path: unauthorized API key', function(done) {
     request(app)
-      .get('/api/notes')
+      .get('/api/notes/' + notesIdx)
       .set('Accept', 'application/json')
       .set('X-API-KEY', 'bad key')
       .expect('Content-Type', /json/)
       .expect(403)
+      .end(function(err, res) {
+        if (err) return done(err);
+
+        return done();
+      });
+  });
+
+  test('sad path: no API key', function(done) {
+    request(app)
+      .get('/api/notes/' + notesIdx)
+      .set('Accept', 'application/json')
+      .expect('Content-Type', /json/)
+      .expect(500)
       .end(function(err, res) {
         if (err) return done(err);
 
