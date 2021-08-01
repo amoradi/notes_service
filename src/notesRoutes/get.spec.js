@@ -71,9 +71,8 @@ afterAll((done) => {
 });
 
 describe('GET /notes', function () {
-  test('happy path: returns notes', function(done) {
-    let noteIdx;
-
+  // From the note created in the test setup in beforeEach, return the single note.
+  test('happy path: returns a note', function(done) {
     request(app)
       .get('/api/notes')
       .set('Accept', 'application/json')
@@ -87,10 +86,31 @@ describe('GET /notes', function () {
         expect(res.body.data[0].name).toBe('myNameIsChargha');
         expect(res.body.data[0].content).toBe('# Title 1 chargha bargha');
     
-        noteIdx = res.body.data[0].idx;
-
         return done();
       });
+  });
+
+  // Create a second note, and test if all notes are returned.
+  test('happy path: returns all notes', async function() {
+    await request(app)
+      .post('/api/notes')
+      .set('X-API-KEY', apiKey)
+      .send({
+        content: '# Title 2 chargha bargha',
+      });
+
+    const res = await request(app)
+      .get('/api/notes')
+      .set('Accept', 'application/json')
+      .set('X-API-KEY', apiKey)
+      .expect('Content-Type', /json/)
+      .expect(200);
+      
+    expect(res.body.data.length).toBe(2);
+    expect(res.body.data[0].name).toBe('myNameIsChargha');
+    expect(res.body.data[0].content).toBe('# Title 1 chargha bargha');
+    expect(res.body.data[1].name).toBe('myNameIsChargha');
+    expect(res.body.data[1].content).toBe('# Title 2 chargha bargha');
   });
 
   test('sad path: unauthorized API key', function(done) {
