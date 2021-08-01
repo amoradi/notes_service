@@ -1,5 +1,6 @@
 const express = require("express");
 const crypto = require("crypto");
+const Router = require('express-promise-router')
 
 const isAuthorized = require("./isAuthorized");
 const db = require("./db");
@@ -20,7 +21,8 @@ const db = require("./db");
      
 */
 
-const router = express.Router();
+// Allows the use of async route handlers.
+const router = new Router();
 
 // TODO: share this.
 const hash = (input) => {
@@ -30,92 +32,67 @@ const hash = (input) => {
 }
 
 // POST /notes/ - create a note. Apply to api_key. 
-router.post("/notes", isAuthorized, (req, res) => {
-  const { content } = req.body;
-  const apiKey = req.header('X-API-KEY');
+// TODO: create multiple notes
+router.post("/notes", isAuthorized, async (req, res) => { 
+  try {
+    const { content } = req.body;
+    const apiKey = req.header('X-API-KEY');
+    // TODO: share this.
+    const selectAuthor = {
+      text: 'SELECT * FROM authors WHERE api_key=$1',
+      values: [hash(apiKey)]
+    };
+    const { rows } = await db.query(selectAuthor);
 
-  // TODO: share this.
-  const selectAuthor = {
-    text: 'SELECT * FROM authors WHERE api_key=$1',
-    values: [hash(apiKey)]
-  };
-
-  db.query(selectAuthor, (err, dbRes) => {
-    if (err) {
-      dbRes.status(500).json({
-        error: err.toString()
-      });
-      return;
+    if (rows.length !== 1) {
+      throw(`${rows.length} authors found for note.`);
     }
 
-    if (dbRes.rows.length !== 1) {
-      dbRes.status(500).json({
-        error: `${dbRes.rows.length} authors found for note.`
-      });
-      return;
-    }
-
-    const author = dbRes.rows[0];
+    const author = rows[0];
     const createNote = {
       text: 'INSERT INTO notes (author, content) VALUES ($1, $2)',
       values: [author.name, content]
     };
-    
-    db.query(createNote, (err_, dbRes_) => {
-      if (err_) {
-        res.status(500).json({
-          error: err_.toString()
-        });
-        return;
-      }
-
-      res.status(200).json({
-        data: dbRes_.rows
-      });
+    const { rows: note } = await db.query(createNote);
+    res.status(200).json({
+      data: note
     });
-  });
+  } catch(err) {
+    res.status(500).json({ error: err.toString() });
+  }
 });
 
-router.get("/notes", isAuthorized, (req, res) => {
-  const apiKey = req.header('X-API-KEY');
-  const selectNotes = {
-    text: 'SELECT * FROM notes LEFT JOIN authors on notes.author = authors.name WHERE authors.api_key=$1',
-    values: [hash(apiKey)]
-  };
-
-  db.query(selectNotes, (err, dbRes) => {
-    if (err) {
-      dbRes.status(500).json({
-        error: err.toString()
-      });
-      return;
-    }
-
+router.get("/notes", isAuthorized, async (req, res) => {
+  try {
+    const apiKey = req.header('X-API-KEY');
+    const selectNotes = {
+      text: 'SELECT * FROM notes LEFT JOIN authors on notes.author = authors.name WHERE authors.api_key=$1',
+      values: [hash(apiKey)]
+    };
+    const { rows: notes } = await db.query(selectNotes);
     res.status(200).json({
-      data: dbRes.rows
+      data: notes
     });
-  });
+  } catch(err) {
+    res.status(500).json({ error: err.toString() });
+  }
 });
 
-router.get("/notes/:idx", isAuthorized, (req, res) => {
-  const apiKey = req.header('X-API-KEY');
-  const selectNotes = {
-    text: 'SELECT * FROM notes LEFT JOIN authors on notes.author = authors.name WHERE authors.api_key=$1 AND notes.idx=$2',
-    values: [hash(apiKey), req.params.idx]
-  };
+router.get("/notes/:idx", isAuthorized, async (req, res) => {
+  try {
+    const apiKey = req.header('X-API-KEY');
+    const selectNotes = {
+      text: 'SELECT * FROM notes LEFT JOIN authors on notes.author = authors.name WHERE authors.api_key=$1 AND notes.idx=$2',
+      values: [hash(apiKey), req.params.idx]
+    };
 
-  db.query(selectNotes, (err, dbRes) => {
-    if (err) {
-      dbRes.status(500).json({
-        error: err.toString()
-      });
-      return;
-    }
-
+    const { rows: notes } = await db.query(selectNotes);
     res.status(200).json({
-      data: dbRes.rows
+      data: notes
     });
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.toString() });
+  }
 });
 
 module.exports = router;

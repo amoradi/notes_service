@@ -29,12 +29,5 @@ module.exports = {
     https://node-postgres.com/features/pooling
 
   */
-  query: (query, callback) => {
-    //const start = Date.now()
-    return pool.query(query, (err, res) => {
-      // const duration = Date.now() - start
-      // console.log('executed query', { text, duration, rows: res.rowCount })
-      callback(err, res);
-    });
-  }
+  query: (text, params) => pool.query(text, params),
 }
