@@ -72,7 +72,14 @@ router.get("/notes", isAuthorized, async (req, res) => {
     };
     const { rows: notes } = await db.query(selectNotes);
     res.status(200).json({
-      data: notes
+      // NOTE: Only return Note type =), not full JOIN-ED type
+      data: notes.map(({ author, content, idx }) => {
+        return {
+          author,
+          content,
+          idx
+        }
+      })
     });
   } catch(err) {
     res.status(500).json({ error: err.toString() });
@@ -89,7 +96,13 @@ router.get("/notes/:idx", isAuthorized, async (req, res) => {
     const { rows: notes } = await db.query(selectNotes);
     
     res.status(200).json({
-      data: notes
+      data: notes.map(({ author, content, idx }) => {
+        return {
+          author,
+          content,
+          idx
+        }
+      })
     });
   } catch (err) {
     res.status(500).json({ error: err.toString() });

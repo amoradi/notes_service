@@ -4,16 +4,6 @@ const request = require('supertest');
 const db = require('../db');
 const { app, server } = require('../index');
 
-/*
-
-  NOTE: A downside with setting up and tearing down with actual DB data, is that,
-  the prepare and post steps use endpoints, under this very test umbrella.
-  
-  Upside, if endpoints used in setup and teardown don't work properly tests will fail,
-  though error could be obfiscated.
-
-*/
-
 // assigned as a beforeEach side effect
 let apiKey;
 
@@ -33,26 +23,10 @@ async function registerAuthor() {
 
   // SIDE EFFECT
   apiKey = res.body.apiKey;
-
-  return apiKey;
-}
-
-async function associateNotesToAuthor(apiKey) {
-  if (apiKey) {
-    const res = await request(app)
-      .post('/api/notes')
-      .set('X-API-KEY', apiKey)
-      .send({
-        content: '# Title 1 chargha bargha',
-      });
-      
-    expect(res.statusCode).toBe(200);
-  }
 }
 
 beforeEach(async () => {
   await registerAuthor();
-  await associateNotesToAuthor(apiKey);
 });
 
 afterEach(async () => {
@@ -70,54 +44,28 @@ afterAll((done) => {
   });
 });
 
-describe('GET /notes', function () {
+describe('POST /notes', function () {
   // From the note created in the test setup in beforeEach, return the single note.
-  test('happy path: returns a note', function(done) {
-    request(app)
-      .get('/api/notes')
+  test('happy path: returns a note', async function() {
+    const res = await request(app)
+      .post('/api/notes')
       .set('Accept', 'application/json')
       .set('X-API-KEY', apiKey)
+      .send({ content: '# POST UP ## chargha bargha' })
       .expect('Content-Type', /json/)
       .expect(200)
-      .end(function(err, res) {
-        if (err) done(err);
-
-        expect(res.body.data.length).toBe(1);
-        expect(res.body.data[0].author).toBe('myNameIsChargha');
-        expect(res.body.data[0].content).toBe('# Title 1 chargha bargha');
-    
-        return done();
-      });
-  });
-
-  // Create a second note, and test if all notes are returned.
-  test('happy path: returns all notes', async function() {
-    await request(app)
-      .post('/api/notes')
-      .set('X-API-KEY', apiKey)
-      .send({
-        content: '# Title 2 chargha bargha',
-      });
-
-    const res = await request(app)
-      .get('/api/notes')
-      .set('Accept', 'application/json')
-      .set('X-API-KEY', apiKey)
-      .expect('Content-Type', /json/)
-      .expect(200);
       
-    expect(res.body.data.length).toBe(2);
+    expect(res.body.data.length).toBe(1);
     expect(res.body.data[0].author).toBe('myNameIsChargha');
-    expect(res.body.data[0].content).toBe('# Title 1 chargha bargha');
-    expect(res.body.data[1].author).toBe('myNameIsChargha');
-    expect(res.body.data[1].content).toBe('# Title 2 chargha bargha');
+    expect(res.body.data[0].content).toBe('# POST UP ## chargha bargha');
   });
 
   test('sad path: unauthorized API key', function(done) {
     request(app)
-      .get('/api/notes')
+      .post('/api/notes')
       .set('Accept', 'application/json')
       .set('X-API-KEY', 'bad key')
+      .send({ content: '# POST UP ## chargha bargha' })
       .expect('Content-Type', /json/)
       .expect(403)
       .end(function(err, res) {
@@ -129,8 +77,9 @@ describe('GET /notes', function () {
 
   test('sad path: no API key', function(done) {
     request(app)
-      .get('/api/notes')
+      .post('/api/notes')
       .set('Accept', 'application/json')
+      .send({ content: '# POST UP ## chargha bargha' })
       .expect('Content-Type', /json/)
       .expect(500)
       .end(function(err, res) {

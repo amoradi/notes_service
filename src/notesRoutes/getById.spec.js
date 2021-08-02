@@ -26,7 +26,7 @@ async function registerAuthor() {
   apiKey = res.body.apiKey;
 }
 
-async function associateNotesToAuthor(apiKey) {
+async function associateNotesToAuthor() {
   if (apiKey) {
     const res = await request(app)
       .post('/api/notes')
@@ -44,7 +44,7 @@ async function associateNotesToAuthor(apiKey) {
 
 beforeEach(async () => {
   await registerAuthor();
-  await associateNotesToAuthor(apiKey);
+  await associateNotesToAuthor();
 });
 
 afterEach(async () => {
@@ -74,7 +74,7 @@ describe('GET /notes/:idx', function () {
         if (err) done(err);
 
         expect(res.body.data.length).toBe(1);
-        expect(res.body.data[0].name).toBe('myNameIsChargha');
+        expect(res.body.data[0].author).toBe('myNameIsChargha');
         expect(res.body.data[0].content).toBe('# Title 1 chargha bargha');
     
         noteIdx = res.body.data[0].idx;
