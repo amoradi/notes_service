@@ -62,18 +62,14 @@ afterAll((done) => {
   });
 });
 
-describe('PATCH /notes/:idx', function () {
-  test('happy path: updates one note', function(done) {
+describe('DELETE /notes/:idx', function () {
+  test('happy path: deletes one note', function(done) {
     request(app)
-      .patch('/api/notes/' + notesIdx)
+      .delete('/api/notes/' + notesIdx)
       .set('Accept', 'application/json')
       .set('X-API-KEY', apiKey)
-      .send({
-        content: 'vengeance is whose?',
-      })
       .expect('Content-Type', /json/)
-      .expect(200) // NOTE: only checking status code b/c node pg returns null, otherwise, I'd 
-      // check the updated content field.
+      .expect(200)
       .end(function(err, res) {
         if (err) return done(err);
 
@@ -83,7 +79,7 @@ describe('PATCH /notes/:idx', function () {
 
   test('sad path: bad note idx', function(done) {
     request(app)
-      .patch('/api/notes/' + 888)
+      .delete('/api/notes/' + 888)
       .set('Accept', 'application/json')
       .set('X-API-KEY', apiKey)
       .expect(500)
@@ -97,7 +93,7 @@ describe('PATCH /notes/:idx', function () {
 
   test('sad path: unauthorized API key', function(done) {
     request(app)
-      .patch('/api/notes/' + notesIdx)
+      .delete('/api/notes/' + notesIdx)
       .set('Accept', 'application/json')
       .set('X-API-KEY', 'bad key')
       .expect('Content-Type', /json/)
@@ -111,7 +107,7 @@ describe('PATCH /notes/:idx', function () {
 
   test('sad path: no API key', function(done) {
     request(app)
-      .patch('/api/notes/' + notesIdx)
+      .delete('/api/notes/' + notesIdx)
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
       .expect(500)
