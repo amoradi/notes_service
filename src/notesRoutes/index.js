@@ -110,35 +110,45 @@ router.patch("/notes/:idx", isAuthorized, async (req, res) => {
     const apiKey = req.header('X-API-KEY');
 
     // Get the author.
-    const selectAuthor = {
-      text: 'SELECT * FROM authors WHERE api_key=$1',
-      values: [hash(apiKey)]
+    // const selectAuthor = {
+    //   text: 'SELECT * FROM authors WHERE api_key=$1',
+    //   values: [hash(apiKey)]
+    // };
+    // const selAuth = await db.query(selectAuthor);
+
+    // if (selAuth.rows.length !== 1) {
+    //   throw(`${selAuth.rows.length} authors found for note.`);
+    // }
+
+    // // Get the incumbent note.
+    // const selectNote = {
+    //   text: 'SELECT * FROM notes WHERE idx=$1',
+    //   values: [req.params.idx] // is this a security risk?
+    // };
+    // const selNotes = await db.query(selectNote);
+
+    // if (selNotes.rows.length !== 1) {
+    //   throw(`${selNotes.rows.length} notes found.`);
+    // }
+
+    // const note = selNotes.rows[0];
+    // const author = selAuth.rows[0];
+
+    // // Does the note's author match the author requesting a change?
+    // if (note.author !== author.name) {
+    //   throw(`Unauthorized to update this note. Note is not authored by ${author.name}`);
+    // }
+
+    const selectNotes = {
+      text: 'SELECT * FROM notes LEFT JOIN authors on notes.author = authors.name WHERE authors.api_key=$1 AND notes.idx=$2',
+      values: [hash(apiKey), req.params.idx]
     };
-    const selAuth = await db.query(selectAuthor);
+    const { rows: notes } = await db.query(selectNotes);
 
-    if (selAuth.rows.length !== 1) {
-      throw(`${selAuth.rows.length} authors found for note.`);
-    }
-
-    // Get the incumbent note.
-    const selectNote = {
-      text: 'SELECT * FROM notes WHERE idx=$1',
-      values: [req.params.idx] // is this a security risk?
-    };
-    const selNotes = await db.query(selectNote);
-
-    if (selNotes.rows.length !== 1) {
-      throw(`${selNotes.rows.length} notes found.`);
-    }
-
-    const note = selNotes.rows[0];
-    const author = selAuth.rows[0];
-
-    // Does the note's author match the author requesting a change?
-    if (note.author !== author.name) {
+    if (notes.length !== 1) {
       throw(`Unauthorized to update this note. Note is not authored by ${author.name}`);
     }
-
+    
     // Update the note via the content field.
     const updateNote = {
       text: 'UPDATE notes SET content = $1 WHERE idx = $2',
