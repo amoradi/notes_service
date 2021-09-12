@@ -7,18 +7,11 @@ const db = require("../db");
 
 /*
   
+  For encoding from markdown to HTML and reverse.
+  (If a FE is ever used with this service, this could come in handy.)
+
   use https://www.npmjs.com/package/showdown
 
-  var showdown  = require('showdown'),
-      converter = new showdown.Converter(),
-      text      = '# hello, markdown!',
-      html      = converter.makeHtml(text);
-
-  var showdown  = require('showdown'),
-    converter = new showdown.Converter(),
-    html      = '<a href="https://patreon.com/showdownjs">Please Support us!</a>',
-    md        = converter.makeMarkdown(text);
-     
 */
 
 // Allows the use of async route handlers.
@@ -30,38 +23,6 @@ const hash = (input) => {
   .update(input)
   .digest("hex");
 }
-
-// POST /notes/ - create a note. Apply to api_key. 
-// TODO: create multiple notes
-router.post("/notes", isAuthorized, async (req, res) => { 
-  try {
-    const { content } = req.body;
-    const apiKey = req.header('X-API-KEY');
-    // TODO: share this.
-    const selectAuthor = {
-      text: 'SELECT * FROM authors WHERE api_key=$1',
-      values: [hash(apiKey)]
-    };
-    const { rows } = await db.query(selectAuthor);
-
-    if (rows.length !== 1) {
-      throw(`${rows.length} authors found for note.`);
-    }
-
-    const author = rows[0];
-    const createNote = {
-      text: 'INSERT INTO notes (author, content) VALUES ($1, $2) RETURNING *',
-      values: [author.name, content]
-    };
-    const { rows: notes } = await db.query(createNote);
-
-    res.status(200).json({
-      data: [notes[0]] // Eventhough it's just one, maintain a returned array interface
-    });
-  } catch(err) {
-    res.status(500).json({ error: err.toString() });
-  }
-});
 
 router.get("/notes", isAuthorized, async (req, res) => {
   try {
@@ -108,5 +69,91 @@ router.get("/notes/:idx", isAuthorized, async (req, res) => {
     res.status(500).json({ error: err.toString() });
   }
 });
+
+// POST /notes/ - create a note. Apply to api_key. 
+// TODO: create multiple notes
+router.post("/notes", isAuthorized, async (req, res) => { 
+  try {
+    const { content } = req.body;
+    const apiKey = req.header('X-API-KEY');
+    // TODO: share this.
+    const selectAuthor = {
+      text: 'SELECT * FROM authors WHERE api_key=$1',
+      values: [hash(apiKey)]
+    };
+    const { rows } = await db.query(selectAuthor);
+
+    if (rows.length !== 1) {
+      throw(`${rows.length} authors found for note.`);
+    }
+
+    const author = rows[0];
+    const createNote = {
+      text: 'INSERT INTO notes (author, content) VALUES ($1, $2) RETURNING *',
+      values: [author.name, content]
+    };
+    const { rows: notes } = await db.query(createNote);
+
+    res.status(200).json({
+      data: [notes[0]] // Eventhough it's just one, maintain a returned array interface
+    });
+  } catch(err) {
+    res.status(500).json({ error: err.toString() });
+  }
+});
+
+// Update a note. PATCH the content only.
+// NOTE: naive approach in affirming author can update said note resource
+router.patch("/notes/:idx", isAuthorized, async (req, res) => {
+  try {
+    const { content } = req.body;
+    const apiKey = req.header('X-API-KEY');
+
+    // Get the author.
+    const selectAuthor = {
+      text: 'SELECT * FROM authors WHERE api_key=$1',
+      values: [hash(apiKey)]
+    };
+    const selAuth = await db.query(selectAuthor);
+
+    if (selAuth.rows.length !== 1) {
+      throw(`${selAuth.rows.length} authors found for note.`);
+    }
+
+    // Get the incumbent note.
+    const selectNote = {
+      text: 'SELECT * FROM notes WHERE idx=$1',
+      values: [req.params.idx] // is this a security risk?
+    };
+    const selNotes = await db.query(selectNote);
+
+    if (selNotes.rows.length !== 1) {
+      throw(`${selNotes.rows.length} notes found.`);
+    }
+
+    const note = selNotes.rows[0];
+    const author = selAuth.rows[0];
+
+    // Does the note's author match the author requesting a change?
+    if (note.author !== author.name) {
+      throw(`Unauthorized to update this note. Note is not authored by ${author.name}`);
+    }
+
+    // Update the note via the content field.
+    const updateNote = {
+      text: 'UPDATE notes SET content = $1 WHERE idx = $2',
+      values: [content, req.params.idx]
+    };
+    const result = await db.query(updateNote);
+
+    res.status(200).json({
+      data: [result.rows[0]]
+    });
+
+
+  } catch {
+    res.status(500).json({ error: err.toString() });
+  }
+}); 
 
 module.exports = router;

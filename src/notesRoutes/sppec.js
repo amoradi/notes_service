@@ -3,9 +3,9 @@
 
 // GET /notes/:id - get a note via api_key and :id DONE
 
-// POST /notes/ - create notes. Apply to api_key. 
+// POST /notes/ - create notes. Apply to api_key. DONE
 
-// PUT /notes/:id - update a note via api_key and :id
+// PATCH /notes/:id - update a note via api_key and :id
 
 // DELETE /notes/:id - destroy a note via api_key and :id
 

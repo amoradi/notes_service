@@ -16,7 +16,7 @@ const hash = (input) => {
   .digest("hex");
 }
 
-// WARNING REQUEST FIELDS ARE NOT SANTIZED YET.
+// ***WARNING*** REQUEST FIELDS ARE NOT SANTIZED YET.
 
 router.post("/authors/register", async (req, res) => {
   try {

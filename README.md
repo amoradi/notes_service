@@ -1,6 +1,6 @@
 # notes service
 
-Create, read, write and update notes. Do your homework =).
+Create, read, write and update notes...do your homework =).
 
 ## usage
 
