@@ -152,7 +152,6 @@ router.delete("/notes/:idx", isAuthorized, async (req, res) => {
       data: [result.rows[0]]
     });
 
-
   } catch {
     res.status(500).json({ error: err.toString() });
   }
