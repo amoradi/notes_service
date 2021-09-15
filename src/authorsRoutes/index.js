@@ -3,8 +3,8 @@ const { v4: uuidv4 } = require('uuid');
 const crypto = require("crypto");
 const Router = require('express-promise-router')
 
-const db = require("./db");
-const isAuthorized = require("./isAuthorized");
+const db = require("../db");
+const isAuthorized = require("../isAuthorized");
 
 // Allows you to use async functions as route handlers.
 const router = new Router();
@@ -17,6 +17,17 @@ const hash = (input) => {
 }
 
 // ***WARNING*** REQUEST FIELDS ARE NOT SANTIZED YET.
+
+// However:
+// "If you are passing parameters to your queries you will want to avoid string
+// concatenating parameters into the query text directly. This can (and often does)
+// lead to sql injection vulnerabilities. node-postgres supports parameterized queries,
+// passing your query text unaltered as well as your parameters to the PostgreSQL
+// server ___***where the parameters are safely substituted into the query with battle-tested
+// parameter substitution code within the server itself.***___"
+
+// TODO: FUTURE: Reset api key endpoint. 
+// GET
 
 router.post("/authors/register", async (req, res) => {
   try {
@@ -46,11 +57,9 @@ router.post("/authors/register", async (req, res) => {
       throw('Author not registered');
     }
   } catch (err) {
-    res.status(500).json({ error: err.toString() });
+    res.status(500).json({ error: err });
   }
 });
-
-// FUTURE: Reset api key endpoint, DELETE author. 
 
 // TODO: delete N authors
 router.delete("/authors/", isAuthorized,  async (req, res) => {
@@ -66,7 +75,7 @@ router.delete("/authors/", isAuthorized,  async (req, res) => {
       data: author
     });
   } catch(err) {
-    res.status(500).json({ error: err.toString() });
+    res.status(500).json({ error: err.message });
   }
 });
 
