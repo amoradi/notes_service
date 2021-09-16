@@ -5,6 +5,9 @@ const Router = require('express-promise-router')
 const isAuthorized = require("../isAuthorized");
 const db = require("../db");
 
+// TODO: Think about breaking this file into separate, per-route files
+// as/if routes increase in number.
+
 /*
   
   For encoding from markdown to HTML and reverse.
@@ -24,6 +27,41 @@ const hash = (input) => {
   .digest("hex");
 }
 
+/**
+ * @openapi
+ * /api/notes:
+ *   get:
+ *     summary: Get all notes from author with associated API key.
+ *     description: Returns a list of notes.
+ *     responses:
+ *       200:
+ *        description: A Note list.
+ *        content:
+ *          text/plain:
+ *            schema: 
+ *              type: array
+ *              items:
+ *                required:
+ *                  - author
+ *                  - content
+ *                  - idx
+ *                properties:
+ *                  author:
+ *                    type: string
+ *                  content:
+ *                    type: string
+ *                  idx:
+ *                    type: number
+ *                  
+ *       500:
+ *        description: Error in retrieving notes.
+ *        schema:
+ *          type: object
+ *          properties:
+ *            error:
+ *              type: string
+ *              description: fu
+ */
 router.get("/notes", isAuthorized, async (req, res) => {
   try {
     const apiKey = req.header('X-API-KEY');
@@ -47,6 +85,18 @@ router.get("/notes", isAuthorized, async (req, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /ping:
+ *   get:
+ *    responses:
+ *       '200':
+ *         description: OK
+ *         content:
+ *           text/plain:
+ *             schema:
+ *               type: string
+ *               example: pong
 router.get("/notes/:idx", isAuthorized, async (req, res) => {
   try {
     const apiKey = req.header('X-API-KEY');
