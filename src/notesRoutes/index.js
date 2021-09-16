@@ -37,7 +37,7 @@ const hash = (input) => {
  *       200:
  *        description: A Note list.
  *        content:
- *          text/plain:
+ *          application/json:
  *            schema: 
  *              type: array
  *              items:
@@ -85,18 +85,6 @@ router.get("/notes", isAuthorized, async (req, res) => {
   }
 });
 
-/**
- * @openapi
- * /ping:
- *   get:
- *    responses:
- *       '200':
- *         description: OK
- *         content:
- *           text/plain:
- *             schema:
- *               type: string
- *               example: pong
 router.get("/notes/:idx", isAuthorized, async (req, res) => {
   try {
     const apiKey = req.header('X-API-KEY');
