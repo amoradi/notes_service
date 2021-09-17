@@ -54,13 +54,17 @@ const hash = (input) => {
  *                    type: number
  *                  
  *       500:
- *        description: Error in retrieving notes.
- *        schema:
- *          type: object
- *          properties:
- *            error:
- *              type: string
- *              description: fu
+ *        description: A Note list.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              required:
+ *                - error
+ *              properties:
+ *                error:
+ *                  type: string
+ *                  description: fu
  */
 router.get("/notes", isAuthorized, async (req, res) => {
   try {
