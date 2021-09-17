@@ -54,7 +54,7 @@ const hash = (input) => {
  *                    type: number
  *                  
  *       500:
- *        description: A Note list.
+ *        description: Error
  *        content:
  *          application/json:
  *            schema:
@@ -89,6 +89,52 @@ router.get("/notes", isAuthorized, async (req, res) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/notes/{idx}:
+ *   get:
+ *     summary: Get a note by index from author with associated API key.
+ *     description: Returns a list of 1 note.
+ *     parameters:
+ *      - name: idx
+ *        in: path
+ *        description: Note index
+ *        required: true
+ *        schema:
+ *          type: integer
+ *     responses:
+ *       200:
+ *        description: A Note list.
+ *        content:
+ *          application/json:
+ *            schema: 
+ *              type: array
+ *              items:
+ *                required:
+ *                  - author
+ *                  - content
+ *                  - idx
+ *                properties:
+ *                  author:
+ *                    type: string
+ *                  content:
+ *                    type: string
+ *                  idx:
+ *                    type: number
+ *                  
+ *       500:
+ *        description: Error.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              required:
+ *                - error
+ *              properties:
+ *                error:
+ *                  type: string
+ *                  description: fu
+ */
 router.get("/notes/:idx", isAuthorized, async (req, res) => {
   try {
     const apiKey = req.header('X-API-KEY');
