@@ -8,7 +8,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "build": "babel src --out-dir lib",
+    "build": "babel src --out-dir lib --copy-files",
     "start": "nodemon lib/",
     "format": "yarn prettier --write .",
     "test": "jest --detectOpenHandles"
@@ -18,9 +18,9 @@
     "express": "^4.17.1",
     "jest": "^27.0.6",
     "nodemon": "^2.0.7",
-    "swagger-jsdoc": "^6.1.0",
     "swagger-ui-express": "^4.1.6",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.14.5",

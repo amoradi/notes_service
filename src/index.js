@@ -13,22 +13,13 @@ const { port = 3000 } = process.env;
 const app = express();
 
 // === API DOCS === //
-const swaggerJsdoc = require('swagger-jsdoc');
+const path = require("path");
 const swaggerUi = require('swagger-ui-express');
-const options = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Notes Service',
-      version: '1.0.0',
-    },
-  },
-  apis: ['./src/notesRoutes/index.js'],
-};
-const openapiSpecification = swaggerJsdoc(options);
+const YAML = require('yamljs');
+const swaggerDoc = YAML.load(__dirname +'/swagger.yaml');
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiSpecification));
-    
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDoc));
+
 // === MIDDLEWARE === //
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

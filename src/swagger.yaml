@@ -1,0 +1,211 @@
+openapi: 3.0.0
+info:
+  title: Notes Service
+  description: CRUD for Notes
+  version: 0.1.9
+# servers:
+#   - url: http://localhost:3000/
+securitySchemes:
+  ApiKeyAuth:
+    type: apiKey
+    in: header
+    name: X-API-Key
+security:
+  - ApiKeyAuth: []
+paths:
+  /api/notes:
+    get:
+      summary: Get all notes.
+      description: Returns a list of notes.
+      responses:
+        200:
+          description: A Note list
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  required:
+                    - author
+                    - content
+                    - idx
+                  properties:
+                    author:
+                      type: string
+                    content:
+                      type: string
+                    idx:
+                      type: number
+        500:
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+    post:
+      summary: Create a note.
+      description: Returns the created note in a list (of length 1)
+      requestBody:
+        content:
+          application/json:
+            schema: 
+              type: object
+              properties:
+                content:
+                  type: string
+      responses:
+        200:
+          description: The created note
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  required:
+                    - author
+                    - content
+                    - idx
+                  properties:
+                    author:
+                      type: string
+                    content:
+                      type: string
+                    idx:
+                      type: number        
+        500:
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  /api/notes/{idx}:
+    delete:
+      summary: Delete a note by index.
+      description: Delete a note by idx.
+      parameters:
+        - name: idx
+          in: path
+          description: Note index
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Return the deleted note.
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  required:
+                    - author
+                    - content
+                    - idx
+                  properties:
+                    author:
+                      type: string
+                    content:
+                      type: string
+                    idx:
+                      type: number         
+        500:
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+    get:
+      summary: Get a note by index.
+      description: Returns a list of 1 note.
+      parameters:
+        - name: idx
+          in: path
+          description: Note index
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: A Note list
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  required:
+                    - author
+                    - content
+                    - idx
+                  properties:
+                    author:
+                      type: string
+                    content:
+                      type: string
+                    idx:
+                      type: number         
+        500:
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+    patch:
+      summary: Update a note by index.
+      description: Patch a note's content member.
+      parameters:
+        - name: idx
+          in: path
+          description: Note index
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Return the updated note.
+          content:
+            application/json:
+              schema: 
+                type: array
+                items:
+                  required:
+                    - author
+                    - content
+                    - idx
+                  properties:
+                    author:
+                      type: string
+                    content:
+                      type: string
+                    idx:
+                      type: number         
+        500:
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
