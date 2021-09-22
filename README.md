@@ -1,4 +1,5 @@
 # notes service
+![example workflow](https://github.com/amoradi/notes_service/actions/workflows/node.js.yaml/badge.svg?branch=master)
 
 Create, read, write and update notes...do your homework =).
 
@@ -6,7 +7,7 @@ Create, read, write and update notes...do your homework =).
 
 ```js
 
-yarn start
+$ yarn start
 
 ```
 
