@@ -1,7 +1,7 @@
 const express = require("express");
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 const crypto = require("crypto");
-const Router = require('express-promise-router')
+const Router = require("express-promise-router");
 
 const db = require("../db");
 const isAuthorized = require("../isAuthorized");
@@ -11,10 +11,8 @@ const router = new Router();
 
 // TODO: share this.
 const hash = (input) => {
-  return crypto.createHash("sha256")
-  .update(input)
-  .digest("hex");
-}
+  return crypto.createHash("sha256").update(input).digest("hex");
+};
 
 // ***WARNING*** REQUEST FIELDS ARE NOT SANTIZED YET.
 
@@ -26,7 +24,7 @@ const hash = (input) => {
 // server ___***where the parameters are safely substituted into the query with battle-tested
 // parameter substitution code within the server itself.***___"
 
-// TODO: FUTURE: Reset api key endpoint. 
+// TODO: FUTURE: Reset api key endpoint.
 
 router.post("/authors/register", async (req, res) => {
   try {
@@ -38,8 +36,8 @@ router.post("/authors/register", async (req, res) => {
     // hash the api key for storage.
     const hashedApiKey = hash(apiKey);
     const registerAuthor = {
-      text: 'INSERT INTO authors (email, name, api_key) VALUES ($1, $2, $3)',
-      values: [email, name, hashedApiKey]
+      text: "INSERT INTO authors (email, name, api_key) VALUES ($1, $2, $3)",
+      values: [email, name, hashedApiKey],
     };
     const dbRes = await db.query(registerAuthor);
 
@@ -53,7 +51,7 @@ router.post("/authors/register", async (req, res) => {
         name,
       });
     } else {
-      throw('Author not registered');
+      throw "Author not registered";
     }
   } catch (err) {
     res.status(500).json({ error: err });
@@ -61,19 +59,19 @@ router.post("/authors/register", async (req, res) => {
 });
 
 // TODO: delete N authors
-router.delete("/authors/", isAuthorized,  async (req, res) => {
+router.delete("/authors/", isAuthorized, async (req, res) => {
   try {
-    const apiKey = req.header('X-API-KEY');
+    const apiKey = req.header("X-API-KEY");
     const deleteAuthor = {
-      text: 'DELETE FROM authors WHERE authors.api_key=$1',
-      values: [hash(apiKey)]
+      text: "DELETE FROM authors WHERE authors.api_key=$1",
+      values: [hash(apiKey)],
     };
     const { rows: author } = await db.query(deleteAuthor);
 
     res.status(200).json({
-      data: author
+      data: author,
     });
-  } catch(err) {
+  } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });

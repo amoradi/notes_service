@@ -1,4 +1,4 @@
-const { Pool } = require('pg')
+const { Pool } = require("pg");
 
 const config = {
   user: process.env.DB_USER,
@@ -7,8 +7,8 @@ const config = {
   host: process.env.DB_HOST,
   port: process.env.DB_PORT,
   max: process.env.DB_MAX,
-  idleTimeoutMillis: process.env.DB_IDLE_TIMEOUT
-}
+  idleTimeoutMillis: process.env.DB_IDLE_TIMEOUT,
+};
 
 const pool = new Pool(config);
 
@@ -30,4 +30,4 @@ module.exports = {
 
   */
   query: (text, params) => pool.query(text, params),
-}
+};

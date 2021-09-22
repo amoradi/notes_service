@@ -10,7 +10,7 @@
   "scripts": {
     "build": "babel src --out-dir lib --copy-files",
     "start": "nodemon lib/",
-    "format": "yarn prettier --write .",
+    "format": "yarn prettier --write src/",
     "test": "jest --detectOpenHandles"
   },
   "dependencies": {
