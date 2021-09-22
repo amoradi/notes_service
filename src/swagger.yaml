@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
-  title: Notes Service
-  description: CRUD for Notes
+  title: Notes API
+  description: CRUD for Notes. Register an Author, get an API key, CRUD Notes.
   version: 0.1.9
 # servers:
 #   - url: http://localhost:3000/
@@ -11,8 +11,75 @@ securitySchemes:
     in: header
     name: X-API-Key
 security:
-  - ApiKeyAuth: []
+  - ApiKeyAuth: [] 
 paths:
+  /api/authors/register:
+    post:
+      summary: Create and register an auther, get an API key.
+      description: Returns created author with API key.
+      responses:
+        200:
+          description: Author registered.
+          content:
+            application/json:
+              schema: 
+                type: object
+                required:
+                  - apiKey
+                  - email
+                  - name
+                properties:
+                  apiKey:
+                    type: string
+                  email:
+                    type: string
+                  name:
+                    type: string
+        500:
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
+  /api/authors:
+    delete:
+      summary: Delete an author.
+      description: Returns an empty array.
+      responses:
+        200:
+          description: Author deleted.
+          content:
+            application/json:
+              schema: 
+                type: object
+                description: Note\: resource is found on the response.body
+                required:
+                  - apiKey
+                  - email
+                  - name
+                properties:
+                  apiKey:
+                    type: string
+                  email:
+                    type: string
+                  name:
+                    type: string
+        500:
+          description: Error
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - error
+                properties:
+                  error:
+                    type: string
   /api/notes:
     get:
       summary: Get all notes.

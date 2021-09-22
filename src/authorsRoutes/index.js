@@ -27,7 +27,6 @@ const hash = (input) => {
 // parameter substitution code within the server itself.***___"
 
 // TODO: FUTURE: Reset api key endpoint. 
-// GET
 
 router.post("/authors/register", async (req, res) => {
   try {
